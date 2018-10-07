@@ -65,16 +65,31 @@ else
 (endCycle)
 )
 
-;; Everything is ok
+;; Everything is ok, no change
 (defrule ticketsBuy
 (request (eventName ?name) (ticketsNumber ?ticketsRequested) (moneyGiven ?moneyGiven))
 (event (name ?name) (ticketsNumber ?ticketsInStore) (ticketPrice ?ticketPrice))
 (test (>= ?ticketsInStore ?ticketsRequested))
-(test (>= ?moneyGiven (* ?ticketsRequested ?ticketPrice)))
+(test (= ?moneyGiven (* ?ticketsRequested ?ticketPrice)))
 ?eventFact <- (event (name ?name) (ticketsNumber ?ticketsInStore) (ticketPrice ?ticketPrice))
 ?requestFact <- (request (eventName ?name) (ticketsNumber ?ticketsRequested) (moneyGiven ?moneyGiven))
 =>
-(printout t "Here are yout tickets. Thanks." crlf)
+(printout t "Here are yout tickets. Thanks. No change needed." crlf)
+(modify ?eventFact (ticketsNumber (- ?ticketsInStore ?ticketsRequested)))
+(retract ?requestFact)
+(endCycle)
+)
+
+;; Everything is ok, needs change
+(defrule ticketsBuyWithChange
+(request (eventName ?name) (ticketsNumber ?ticketsRequested) (moneyGiven ?moneyGiven))
+(event (name ?name) (ticketsNumber ?ticketsInStore) (ticketPrice ?ticketPrice))
+(test (>= ?ticketsInStore ?ticketsRequested))
+(test (> ?moneyGiven (* ?ticketsRequested ?ticketPrice)))
+?eventFact <- (event (name ?name) (ticketsNumber ?ticketsInStore) (ticketPrice ?ticketPrice))
+?requestFact <- (request (eventName ?name) (ticketsNumber ?ticketsRequested) (moneyGiven ?moneyGiven))
+=>
+(printout t "Here are yout tickets. Thanks. Your change: " (- ?moneyGiven (* ?ticketsRequested ?ticketPrice)) crlf)
 (modify ?eventFact (ticketsNumber (- ?ticketsInStore ?ticketsRequested)))
 (retract ?requestFact)
 (endCycle)
